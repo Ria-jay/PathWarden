@@ -21,7 +21,7 @@ decisions, and limitations. Updated at the end of every stage.
 | 2 | Graph and permission-aware reachability | complete |
 | 3 | Static rules PW-001…PW-007 | complete |
 | 4 | Trace / provenance analysis | complete |
-| 5 | MCP-style importer | not started |
+| 5 | MCP-style importer | complete |
 | 6 | CLI and reporting | not started |
 | 7 | HR example and regression tests | not started |
 | 8 | Quality, security, and documentation | not started |
@@ -304,3 +304,61 @@ Stage 4 — execution-log provenance analysis (JSONL parsing, validation,
 
 Stage 5 — MCP-style tool definition importer (partial configs, `needs_review`,
 deterministic review indicators, tests).
+
+## Stage 5 — MCP-style importer
+
+### Implemented
+
+- `importers/base.py`: the `ToolImporter` adapter interface.
+- `importers/partial.py`: `PartialConfig`, `ImportedTool`, `NeedsReviewItem`,
+  `ReviewIndicator`, and `indeterminate_findings` (one `IMPORT-001`
+  indeterminate finding per imported tool).
+- `importers/mcp.py`: the MCP importer for tool objects, lists, or
+  `{"tools": [...]}`; preserves names, descriptions, input schemas, annotations,
+  and raw definitions; lists unsupported fields; records unknown security fields
+  under `needs_review`.
+- Deterministic review indicators: instruction-like text, hidden/format Unicode,
+  broad parameter schemas, arbitrary resource/destination parameters, and
+  missing/vague descriptions.
+- `importers/__init__.py`: registry, `import_data`, and `import_tools`.
+- `docs/importer.md`.
+
+### Commands run (working directory `/home/kali/pathwarden`)
+
+```bash
+./.venv/bin/python -m pytest
+./.venv/bin/ruff check .
+./.venv/bin/mypy
+```
+
+### Actual results
+
+- `pytest`: **196 passed**.
+- `ruff check .`: **All checks passed!**
+- `mypy` (strict): **Success: no issues found in 40 source files**.
+- Demonstration on `tests/fixtures/mcp_tools.json`: 4 tools imported, 40
+  `needs_review` items, `tool:read_employee:annotations` listed as unsupported,
+  and indicators raised for instruction-like text and hidden Unicode (`U+200B`)
+  in `helper`, broad schemas, an arbitrary `url`/`to` destination parameter, and
+  vague descriptions. Four indeterminate `IMPORT-001` findings produced.
+
+### Decisions
+
+1. A partial config is a distinct model, not a fabricated `AgentConfig`; it is
+   never analyzed as if unknown fields had values.
+2. `needs_review` records every unknown security field per tool; unsupported
+   fields are listed and raw definitions preserved.
+3. Review indicators are deterministic and explicitly labelled as prompts for
+   review, not proof.
+
+### Known limitations
+
+- Only the MCP-tools subset is supported; other formats are not implemented and
+  are not claimed.
+- `annotations` (for example MCP `readOnlyHint`) are preserved but not
+  normalized into Pathwarden fields.
+
+### Next step
+
+Stage 6 — CLI and reporting (all commands, exit codes, thresholds, Markdown and
+JSON reports, CLI tests, run against the examples).

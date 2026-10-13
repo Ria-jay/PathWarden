@@ -48,3 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Trace findings (observed / indeterminate) separate from static findings.
   - Labelled correlation with static findings.
   - `docs/trace-format.md` and `docs/provenance.md`.
+
+- Stage 5 — MCP-style importer:
+  - Adapter interface and a documented MCP-tools importer.
+  - Partial-config output with `needs_review`, preserved unsupported fields, and
+    indeterminate `IMPORT-001` findings.
+  - Deterministic review indicators (instruction-like text, hidden Unicode,
+    broad schemas, arbitrary destination parameters, vague descriptions).
+  - `docs/importer.md`.
