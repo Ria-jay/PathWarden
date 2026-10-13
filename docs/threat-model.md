@@ -63,5 +63,5 @@ No randomness, no wall-clock dependence in analysis, no network.
   with influence.
 * MCP import preserves only the documented subset; unknown security fields are
   reported, not inferred.
-* The `>=3.11` floor is verified locally on Python 3.14; CI is configured to test
-  additional versions.
+* The `>=3.11` floor is verified in CI across Python 3.11, 3.12, 3.13, and 3.14
+  (see the repository's Actions tab).

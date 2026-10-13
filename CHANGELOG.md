@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Notes
 
 - Deterministic, offline, LLM-free core.
-- Verified on Python 3.14; CI configured for 3.11–3.14.
+- Verified in CI on Python 3.11, 3.12, 3.13, and 3.14; developed locally on 3.14.
 
 ### Stage detail
 

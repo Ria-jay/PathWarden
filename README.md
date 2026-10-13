@@ -1,5 +1,7 @@
 # Pathwarden
 
+[![CI](https://github.com/Ria-jay/PathWarden/actions/workflows/ci.yml/badge.svg)](https://github.com/Ria-jay/PathWarden/actions/workflows/ci.yml)
+
 > **Trace the paths. Expose the risks.**
 
 Pathwarden is an open-source, CLI-first security analyzer for AI agent
@@ -45,8 +47,8 @@ Markdown and JSON reports, and a reproducible HR before/after example. See
 
 ## Requirements
 
-- Python 3.11 or later (developed and tested on the interpreter available in
-  this environment; see `PROGRESS.md` for the exact version used).
+- Python 3.11 or later. Verified on **3.11, 3.12, 3.13, and 3.14** in CI
+  (see the Actions tab); developed locally on 3.14.
 - No API keys, no network access, no database.
 
 ## Installation (development)

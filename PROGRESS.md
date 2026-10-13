@@ -107,6 +107,7 @@ python3 -m venv .venv
   Stage 8.
 - The `>=3.11` claim is exercised on Python 3.14 only; 3.11–3.13 are not yet
   verified (nothing version-specific is used, but this is unproven).
+  _Resolved post-release: CI now runs and passes on 3.11–3.14 (see below)._
 
 ### Next step (superseded)
 
@@ -543,8 +544,8 @@ pure-Python benchmark: 50,000-event trace
 
 ### Known limitations
 
-- Only Python 3.14 has been executed locally; CI is configured to test 3.11–3.14
-  but has not been run in this environment.
+- Only Python 3.14 has been executed locally. _Resolved post-release: CI runs on
+  3.11–3.14 and passed._
 - Trace parsing costs ~10 KB/event and ~7 s per 50k events; the event limit is
   the safety boundary.
 - Pathwarden detects only the implemented rules; it does not cover every agent
@@ -556,3 +557,13 @@ All eight stages are complete and committed. The test suite (225 tests) passes,
 Ruff and strict mypy are clean on Python 3.14, and the CLI, reports, examples,
 and documentation are implemented and exercised. Unknowns are represented
 honestly throughout; no feature is claimed that is not implemented and tested.
+
+## Post-release — published and CI-verified
+
+- Pushed to GitHub: https://github.com/Ria-jay/PathWarden (public, default branch
+  `main`).
+- CI run `38389694363` on commit `85d65f8` **passed** every job:
+  Python 3.11, 3.12, 3.13, 3.14 (each running `ruff check`, `ruff format --check`,
+  `mypy`, and 225 tests) and the example-analysis gate job.
+- README now carries the CI badge; requirements and the threat model record the
+  verified 3.11–3.14 support.
