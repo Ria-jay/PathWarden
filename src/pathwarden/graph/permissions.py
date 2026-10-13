@@ -43,6 +43,7 @@ __all__ = [
     "PermissionResult",
     "PermissionStep",
     "assess_approval",
+    "bare_pattern",
     "check_destinations",
     "check_resource_operation",
     "check_resource_restrictions",
@@ -51,6 +52,8 @@ __all__ = [
     "check_tool_operation",
     "evaluate_access",
     "fold_statuses",
+    "is_deny_pattern",
+    "pattern_list_matches",
 ]
 
 #: Prefix marking an explicit deny pattern in a declaration list.
@@ -131,6 +134,24 @@ def _bare(pattern: str) -> str:
 
 def _matches(patterns: tuple[str, ...], value: str) -> bool:
     return any(fnmatchcase(value, _bare(pattern)) for pattern in patterns)
+
+
+def is_deny_pattern(pattern: str) -> bool:
+    """Return ``True`` if ``pattern`` is an explicit deny (``!``-prefixed)."""
+
+    return _is_deny(pattern)
+
+
+def bare_pattern(pattern: str) -> str:
+    """Return ``pattern`` without a leading deny marker."""
+
+    return _bare(pattern)
+
+
+def pattern_list_matches(patterns: tuple[str, ...], value: str) -> bool:
+    """Return ``True`` if any pattern (allow or deny) matches ``value``."""
+
+    return _matches(patterns, value)
 
 
 # --------------------------------------------------------------------------- #

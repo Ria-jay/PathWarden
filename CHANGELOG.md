@@ -29,3 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     declared capabilities.
   - Deterministic JSON, Mermaid, and Graphviz DOT exports.
   - `docs/permission-model.md` and permission/graph tests.
+
+- Stage 3 — static rules PW-001…PW-007:
+  - Finding model with evidence, paths, effective identity, permission steps,
+    missing constraints, remediation, and limitations.
+  - Documented severity matrix and ordered modifiers; confidence tracked
+    separately.
+  - Seven deterministic rules: untrusted input to sensitive operation, confused
+    deputy, over-broad scope, missing approval, exfiltration path, cross-tenant
+    exposure, and privilege chain.
+  - `docs/severity.md` and `docs/rules.md`.

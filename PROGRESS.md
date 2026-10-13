@@ -19,7 +19,7 @@ decisions, and limitations. Updated at the end of every stage.
 | 0 | Repository inspection and plan | complete (approved) |
 | 1 | Foundation and configuration schema | complete |
 | 2 | Graph and permission-aware reachability | complete |
-| 3 | Static rules PW-001…PW-007 | not started |
+| 3 | Static rules PW-001…PW-007 | complete |
 | 4 | Trace / provenance analysis | not started |
 | 5 | MCP-style importer | not started |
 | 6 | CLI and reporting | not started |
@@ -180,6 +180,65 @@ python3 -m venv .venv
 
 ### Next step
 
-Stage 3 — static rules PW-001…PW-007, one at a time, each with documented
-limitations and positive, negative, boundary, insufficient-information, and
-structurally-connected-but-not-permission-reachable tests.
+Stage 3 — static rules PW-001…PW-007.
+
+## Stage 3 — Static rules PW-001…PW-007
+
+### Implemented
+
+- `finding.py`: the finding model with `finding_id`, `rule_id`, `title`,
+  `severity`, `confidence`, `status`, `summary`, `evidence`, `path`,
+  `affected_resources`, `effective_identity`, `relevant_permissions`,
+  `missing_or_uncertain_constraints`, `remediation`, `limitations`. Stable,
+  content-derived `finding_id`.
+- `severity.py`: the documented matrix and modifiers (untrusted raise, declared
+  control lower, unknown cap at medium), applied in order.
+- `rules/`: `base.py` (Rule interface, deterministic sorting), `common.py`
+  (shared access enumeration), and `pw001.py` … `pw007.py`, plus `rules/__init__`
+  registry and the `analyze()` facade in `analyze.py`.
+- `docs/severity.md` and `docs/rules.md`.
+
+### Commands run (working directory `/home/kali/pathwarden`)
+
+```bash
+./.venv/bin/python -m pytest
+./.venv/bin/ruff check .
+./.venv/bin/mypy
+```
+
+### Actual results
+
+- `pytest`: **156 passed**.
+- `ruff check .`: **All checks passed!**
+- `mypy` (strict): **Success: no issues found in 31 source files**.
+- Demonstration on `tests/fixtures/valid_hr.yaml`: 9 findings across PW-001,
+  PW-002, PW-003, PW-004, PW-005, with correct severities, statuses
+  (reachable/indeterminate), evidence, paths, and missing-constraint lists. No
+  PW-006 (only one tenant represented) and no PW-007 (no `flows_to` chain).
+
+### Decisions
+
+1. Each rule is a class with stable metadata; `run_rules` sorts findings by
+   severity, rule, then finding id for determinism.
+2. `finding_id` is a short hash of the rule plus its key content, so it is stable
+   across runs and independent of ordering.
+3. PW-003 evaluates identity-vs-tool scope per tool, so a shared identity holding
+   an operation one tool does not use is reported for that tool. Documented as a
+   limitation.
+4. PW-005 applies no untrusted-source modifier (its risk is the outbound path,
+   not injection); PW-007 reports chains whose starting read is denied as
+   *informational* to distinguish structural connectivity from permission
+   validity.
+
+### Known limitations
+
+- PW-003 scope-to-operation mapping is token-based; unmapped scope strings are
+  reported as undetermined rather than guessed.
+- PW-006 reasons at the identity level; tool tenant behaviour is derived from its
+  execution identity.
+- Findings are computed in memory; reporting/CLI rendering land in Stage 6.
+
+### Next step
+
+Stage 4 — execution-log provenance analysis (JSONL parsing, validation,
+`direct`/`contextual`/`unknown` classification, correlation, tests).
