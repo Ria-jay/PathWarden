@@ -1,0 +1,5 @@
+schema_version: "1.0"
+agent:
+  id: assistant
+   name: Broken Indentation
+  execution_identity: assistant-identity

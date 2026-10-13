@@ -1,0 +1,54 @@
+schema_version: "1.0"
+
+agent:
+  id: hr-assistant
+  name: HR Assistant
+  execution_identity: hr-agent-identity
+
+identities:
+  - id: hr-agent-identity
+    type: service_account
+    name: HR agent execution identity
+    granted_scopes: ["db:read", "mail:send"]
+    tenants: ["acme", "globex"]
+    credential_ref: "vault://kv/hr/agent-token"
+
+input_sources:
+  - id: cv-upload
+    name: Candidate CV upload
+    type: uploaded_file
+    trust: untrusted
+    may_contain_attacker_content: true
+    requesting_principal: candidate
+
+tools:
+  - id: hr-database
+    name: Employee database reader
+    description: Reads employee records from the HR database.
+    operations: [read]
+    identity: hr-agent-identity
+    required_scopes: ["db:read"]
+    approval:
+      read: none
+
+  - id: email-sender
+    name: Email sender
+    description: Sends email messages to recipients.
+    operations: [send]
+    identity: hr-agent-identity
+    required_scopes: ["mail:send"]
+    outbound: true
+    approval:
+      send: none
+
+resources:
+  - id: employee-db
+    type: database
+    sensitivity: confidential
+    owner: hr-team
+    tenant: acme
+
+policy:
+  approval_operations: [send]
+  approval_sensitivity: [confidential, restricted]
+  boundary_sensitivity: [restricted]

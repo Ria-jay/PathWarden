@@ -1,0 +1,16 @@
+schema_version: "1.0"
+
+agent:
+  id: assistant
+  name: Invalid Operation Assistant
+  execution_identity: assistant-identity
+
+identities:
+  - id: assistant-identity
+    type: service_account
+
+tools:
+  - id: doc-reader
+    name: Document reader
+    operations: [read, frobnicate]
+    identity: assistant-identity

@@ -1,0 +1,17 @@
+schema_version: "1.0"
+
+agent:
+  id: assistant
+  name: Invalid Sensitivity Assistant
+  execution_identity: assistant-identity
+
+identities:
+  - id: assistant-identity
+    type: service_account
+
+resources:
+  - id: docs
+    type: document_store
+    sensitivity: secret
+    owner: team
+    tenant: acme

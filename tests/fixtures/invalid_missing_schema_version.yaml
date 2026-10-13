@@ -1,0 +1,8 @@
+agent:
+  id: assistant
+  name: Missing Version Assistant
+  execution_identity: assistant-identity
+
+identities:
+  - id: assistant-identity
+    type: service_account

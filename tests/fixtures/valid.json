@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "agent": {
+    "id": "assistant",
+    "name": "JSON Assistant",
+    "execution_identity": "assistant-identity"
+  },
+  "identities": [
+    {
+      "id": "assistant-identity",
+      "type": "service_account",
+      "granted_scopes": ["docs:read"],
+      "tenants": ["acme"]
+    }
+  ],
+  "input_sources": [
+    {
+      "id": "user-chat",
+      "name": "User chat",
+      "type": "user_message",
+      "trust": "user"
+    }
+  ],
+  "tools": [
+    {
+      "id": "doc-reader",
+      "name": "Document reader",
+      "operations": ["read"],
+      "identity": "assistant-identity",
+      "approval": {"read": "none"}
+    }
+  ],
+  "resources": [
+    {
+      "id": "docs",
+      "type": "document_store",
+      "sensitivity": "internal",
+      "owner": "docs-team",
+      "tenant": "acme"
+    }
+  ],
+  "policy": {
+    "approval_operations": [],
+    "approval_sensitivity": []
+  }
+}

@@ -1,0 +1,29 @@
+schema_version: "1.0"
+
+agent:
+  id: assistant
+  name: Duplicate ID Assistant
+  execution_identity: assistant-identity
+
+identities:
+  - id: assistant-identity
+    type: service_account
+
+input_sources:
+  - id: user-chat
+    name: User chat
+    type: user_message
+    trust: user
+
+tools:
+  - id: shared-id
+    name: A tool
+    operations: [read]
+    identity: assistant-identity
+
+resources:
+  - id: shared-id
+    type: database
+    sensitivity: internal
+    owner: team
+    tenant: acme
