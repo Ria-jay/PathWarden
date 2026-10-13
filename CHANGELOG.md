@@ -56,3 +56,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Deterministic review indicators (instruction-like text, hidden Unicode,
     broad schemas, arbitrary destination parameters, vague descriptions).
   - `docs/importer.md`.
+
+- Stage 6 — CLI and reporting:
+  - Typer commands `analyze`, `trace`, `graph`, `report`, `import-mcp` with
+    `--fail-on`, `--format`, and `--verbose`.
+  - Stable Markdown and JSON reports (deterministic apart from the timestamp).
+  - Documented exit codes (0/1/2/3), clean JSON on stdout, diagnostics on stderr,
+    and secret redaction in all diagnostics.
+  - `docs/exit-codes.md` and `docs/report-format.md`.

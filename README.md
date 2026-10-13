@@ -31,16 +31,16 @@ Early development. This repository is being built in documented stages
 | 3 | Static rules PW-001…PW-007 | complete |
 | 4 | Trace / provenance analysis | complete |
 | 5 | MCP-style importer | complete |
-| 6 | CLI and reporting | not started |
+| 6 | CLI and reporting | complete |
 | 7 | HR example and regression tests | not started |
 | 8 | Quality, security, and documentation | not started |
 
 Only features that are actually implemented and tested are documented here.
-Through Stage 5, configuration loading/validation, the typed permission-aware
-graph with JSON/Mermaid/DOT export, the seven static rules (PW-001…PW-007),
-execution-log provenance analysis, and the MCP-tools importer are available. The
-CLI currently exposes `--version`/`--help` only; the analysis commands are added
-in Stage 6. See `docs/`.
+Through Stage 6, Pathwarden provides configuration loading/validation, the typed
+permission-aware graph with JSON/Mermaid/DOT export, the seven static rules
+(PW-001…PW-007), execution-log provenance analysis, the MCP-tools importer, and
+the CLI commands `analyze`, `trace`, `graph`, `report`, and `import-mcp` with
+Markdown and JSON reports. See `docs/`.
 
 ## Requirements
 
@@ -57,12 +57,33 @@ python3 -m venv .venv
 ./.venv/bin/python -m pip install -e ".[dev]"
 ```
 
-## Quick start (current stage)
+## Quick start
 
 ```bash
-./.venv/bin/pathwarden --version
-./.venv/bin/pathwarden --help
+# Validate, build the graph, and run the static rules.
+./.venv/bin/pathwarden analyze tests/fixtures/valid_hr.yaml
+
+# Emit a structured JSON report.
+./.venv/bin/pathwarden analyze tests/fixtures/valid_hr.yaml --format json
+
+# Analyze an execution trace (observed evidence, kept separate from static).
+./.venv/bin/pathwarden trace tests/fixtures/valid_hr.yaml tests/fixtures/trace_hr.jsonl
+
+# Export the graph.
+./.venv/bin/pathwarden graph tests/fixtures/valid_hr.yaml --format mermaid
+
+# Markdown report with trace evidence.
+./.venv/bin/pathwarden report tests/fixtures/valid_hr.yaml --format md \
+    --trace tests/fixtures/trace_hr.jsonl
+
+# Import MCP-style tool definitions as a partial config.
+./.venv/bin/pathwarden import-mcp tests/fixtures/mcp_tools.json
+
+# CI: fail when a finding is high or above.
+./.venv/bin/pathwarden analyze tests/fixtures/valid_hr.yaml --fail-on high
 ```
+
+See `docs/exit-codes.md` for the exit codes and a CI snippet.
 
 Load and validate a configuration from Python:
 

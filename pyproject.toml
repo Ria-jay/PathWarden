@@ -57,7 +57,11 @@ target-version = "py311"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "BLE"]
+
+[tool.ruff.lint.flake8-bugbear]
+# Typer builds options/arguments from these calls; they are intentionally immutable.
+extend-immutable-calls = ["typer.Argument", "typer.Option"]
 
 [tool.mypy]
 python_version = "3.11"

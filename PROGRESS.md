@@ -22,7 +22,7 @@ decisions, and limitations. Updated at the end of every stage.
 | 3 | Static rules PW-001…PW-007 | complete |
 | 4 | Trace / provenance analysis | complete |
 | 5 | MCP-style importer | complete |
-| 6 | CLI and reporting | not started |
+| 6 | CLI and reporting | complete |
 | 7 | HR example and regression tests | not started |
 | 8 | Quality, security, and documentation | not started |
 
@@ -362,3 +362,67 @@ deterministic review indicators, tests).
 
 Stage 6 — CLI and reporting (all commands, exit codes, thresholds, Markdown and
 JSON reports, CLI tests, run against the examples).
+
+## Stage 6 — CLI and reporting
+
+### Implemented
+
+- `reporting/json_report.py`: deterministic structured report (tool/report/schema
+  versions, timestamp, scope, graph summary, severity/status summaries, rule
+  coverage with per-rule finding counts, static findings, optional trace section,
+  limitations).
+- `reporting/markdown.py`: Markdown rendering with the same content.
+- `cli/app.py`: commands `analyze`, `trace`, `graph`, `report`, `import-mcp`,
+  `--fail-on`, `--format`, `--verbose`, documented exit codes (0/1/2/3), clean
+  JSON on stdout, diagnostics on stderr, and redaction of secret-like content in
+  all diagnostics.
+- `docs/exit-codes.md` and `docs/report-format.md`.
+
+### Commands run (working directory `/home/kali/pathwarden`)
+
+```bash
+./.venv/bin/python -m pytest
+./.venv/bin/ruff check .
+./.venv/bin/mypy
+./.venv/bin/pathwarden analyze tests/fixtures/valid_hr.yaml            # exit 1
+./.venv/bin/pathwarden analyze tests/fixtures/valid_hr.yaml --format json
+./.venv/bin/pathwarden graph tests/fixtures/valid_hr.yaml --format mermaid
+./.venv/bin/pathwarden trace tests/fixtures/valid_hr.yaml tests/fixtures/trace_hr.jsonl
+./.venv/bin/pathwarden report tests/fixtures/valid_hr.yaml --format md --trace tests/fixtures/trace_hr.jsonl
+./.venv/bin/pathwarden import-mcp tests/fixtures/mcp_tools.json
+./.venv/bin/pathwarden analyze tests/fixtures/invalid_schema_version.yaml   # exit 2
+```
+
+### Actual results
+
+- `pytest`: **216 passed**.
+- `ruff check .`: **All checks passed!**
+- `mypy` (strict): **Success: no issues found in 43 source files**.
+- CLI runs verified against the fixtures: text and JSON analysis (9 findings; exit
+  1), Mermaid export, trace output with observed evidence and correlations,
+  Markdown report with a trace section, MCP import with diagnostics, and an
+  unsupported-schema error printed cleanly with exit 2 (no traceback).
+- Redaction verified: `secret_credential.yaml` prints `[REDACTED]` on stderr and
+  never the secret value.
+
+### Decisions
+
+1. `--fail-on` defaults to `high`; it is evaluated over static *and* trace
+   findings for `trace`/`report`.
+2. `import-mcp` does not apply `--fail-on` (a partial config is inherently
+   indeterminate).
+3. Loader warnings (for example secret-like `credential_ref`) are printed to
+   stderr as diagnostics, keeping stdout machine-readable.
+4. Text output is a human summary; JSON/Markdown are the stable structured forms.
+
+### Known limitations
+
+- `import-mcp` emits the partial config and diagnostics but not a rendered
+  Markdown report (not required).
+- No colourised terminal output; plain text only.
+
+### Next step
+
+Stage 7 — HR example artifacts (vulnerable config, matching trace, fixed config)
+and before/after regression tests that verify findings change for real
+permission and graph reasons.

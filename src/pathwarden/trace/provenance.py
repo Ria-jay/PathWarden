@@ -104,6 +104,7 @@ class TraceFinding(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     finding_id: str
+    rule_id: str = "TRACE-001"
     title: str
     severity: Severity
     confidence: Confidence
