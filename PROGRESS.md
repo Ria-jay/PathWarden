@@ -20,7 +20,7 @@ decisions, and limitations. Updated at the end of every stage.
 | 1 | Foundation and configuration schema | complete |
 | 2 | Graph and permission-aware reachability | complete |
 | 3 | Static rules PW-001…PW-007 | complete |
-| 4 | Trace / provenance analysis | not started |
+| 4 | Trace / provenance analysis | complete |
 | 5 | MCP-style importer | not started |
 | 6 | CLI and reporting | not started |
 | 7 | HR example and regression tests | not started |
@@ -242,3 +242,65 @@ Stage 3 — static rules PW-001…PW-007.
 
 Stage 4 — execution-log provenance analysis (JSONL parsing, validation,
 `direct`/`contextual`/`unknown` classification, correlation, tests).
+
+## Stage 4 — Trace / provenance analysis
+
+### Implemented
+
+- `trace/events.py`: the event model (`event_id`, `timestamp`, `type`, `source`,
+  `trust_level`, `content_ref`, `content_hash`, `parent_event_ids`, optional
+  `context_event_ids`, plus identity/resource/tool/operation/decision fields).
+  Extra provider fields are preserved; timestamps normalized to UTC.
+- `trace/parser.py`: JSONL loading and validation — required fields, event
+  types, unique ids, timestamp parsing, missing-reference warnings, parent-cycle
+  detection, out-of-order tolerance, and size/line/event limits.
+- `trace/provenance.py`: `direct` / `contextual` / `unknown` classification
+  (all candidates listed, temporal association never treated as influence), and
+  evidence-backed trace findings.
+- `trace/correlate.py`: labelled correlation with static findings
+  (`correlated_by_identifiers`, `observed_event`, `unconfirmed`).
+- `trace/__init__.py`: the `TraceAnalysis` facade.
+- `docs/trace-format.md` and `docs/provenance.md`.
+
+### Commands run (working directory `/home/kali/pathwarden`)
+
+```bash
+./.venv/bin/python -m pytest
+./.venv/bin/ruff check .
+./.venv/bin/mypy
+```
+
+### Actual results
+
+- `pytest`: **179 passed**.
+- `ruff check .`: **All checks passed!**
+- `mypy` (strict): **Success: no issues found in 36 source files**.
+- Demonstration on `tests/fixtures/trace_hr.jsonl`: input `e1` classified
+  `direct` for tool call `e3` (parent chain), `contextual` for `e5`
+  (`context_event_ids`), and `unknown` ("temporal association only") for `e6`.
+  Findings: `e3` observed/high/high-confidence, `e5` observed/medium, `e6`
+  indeterminate/low (medium severity). All three correlated to static findings
+  by matching tool identifiers.
+
+### Decisions
+
+1. Validation of missing parent/context references is a warning, not an error,
+   because a missing parent is never evidence of no influence.
+2. Correlation is a separate, labelled result; static and observed evidence are
+   never merged into a single finding.
+3. Trace findings use a dedicated `TraceFinding` model with `observed` /
+   `indeterminate` status, distinct from static `reachable` / `informational`.
+4. Sensitive tool calls are classified from the operation and the referenced
+   resource's sensitivity.
+
+### Known limitations
+
+- Classification uses parent/context links that the log provides; absence of
+  `context_event_ids` limits conclusions (stated in each finding).
+- No CLI surface yet; trace analysis is exercised through the API and tests
+  until Stage 6.
+
+### Next step
+
+Stage 5 — MCP-style tool definition importer (partial configs, `needs_review`,
+deterministic review indicators, tests).

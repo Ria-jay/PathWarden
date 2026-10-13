@@ -39,3 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     deputy, over-broad scope, missing approval, exfiltration path, cross-tenant
     exposure, and privilege chain.
   - `docs/severity.md` and `docs/rules.md`.
+
+- Stage 4 — execution-log provenance analysis:
+  - JSONL event model and safe parser with validation, reference warnings,
+    cycle detection, out-of-order tolerance, and input limits.
+  - `direct` / `contextual` / `unknown` provenance classification with all
+    candidates listed; temporal association never treated as influence.
+  - Trace findings (observed / indeterminate) separate from static findings.
+  - Labelled correlation with static findings.
+  - `docs/trace-format.md` and `docs/provenance.md`.
