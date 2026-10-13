@@ -108,7 +108,8 @@ class PW006(Rule):
                         op_class,
                         "outside_tenants",
                         f"identity {identity.id!r} is declared for tenants "
-                        f"{list(identity.tenants)} but can reach resources in {outside}.",
+                        f"{list(identity.tenants)} but can reach resources outside its declared "
+                        f"tenants: {outside}.",
                     )
                 )
             elif len(known) > 1:

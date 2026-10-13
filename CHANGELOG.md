@@ -64,3 +64,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Documented exit codes (0/1/2/3), clean JSON on stdout, diagnostics on stderr,
     and secret redaction in all diagnostics.
   - `docs/exit-codes.md` and `docs/report-format.md`.
+
+- Stage 7 — HR example and regression tests:
+  - Vulnerable HR configuration, matching trace, and remediated configuration in
+    `examples/`.
+  - Regression tests asserting that findings change for real permission and graph
+    reasons (tenant isolation, edge absence, destination controls).
+  - PW-001 applies the declared-control severity modifier.

@@ -23,7 +23,7 @@ decisions, and limitations. Updated at the end of every stage.
 | 4 | Trace / provenance analysis | complete |
 | 5 | MCP-style importer | complete |
 | 6 | CLI and reporting | complete |
-| 7 | HR example and regression tests | not started |
+| 7 | HR example and regression tests | complete |
 | 8 | Quality, security, and documentation | not started |
 
 ## Stage 1 — Foundation and configuration schema
@@ -426,3 +426,68 @@ JSON reports, CLI tests, run against the examples).
 Stage 7 — HR example artifacts (vulnerable config, matching trace, fixed config)
 and before/after regression tests that verify findings change for real
 permission and graph reasons.
+
+## Stage 7 — HR example and regression tests
+
+### Implemented
+
+- `examples/vulnerable_agent.yaml`: HR assistant — untrusted CV uploads, an
+  employee database in two tenants, an unrestricted email tool, a
+  `flows_to` chain (database → summarizer → email), no requester-scoped
+  authorization check, and no declared approval.
+- `examples/trace.jsonl`: CV input, model output, a database read, an email
+  call, and a summarizer call, with a direct link, a contextual link, and a
+  deliberately link-less call.
+- `examples/fixed_agent.yaml`: per-tool scoped identities, tenant isolation
+  (acme only, database restricted to `employee-db`), declared approval on read
+  and send, a destination allowlist, `requester_scoped` authorization checks,
+  and no `flows_to` chain.
+- `tests/test_hr_regression.py`: asserts rules fire/cease for real permission
+  and graph reasons (tenant check, edge absence, destination control), and that
+  a small configuration change alters the PW-006 finding.
+
+### Commands run (working directory `/home/kali/pathwarden`)
+
+```bash
+./.venv/bin/python -m pytest
+./.venv/bin/ruff check .
+./.venv/bin/mypy
+```
+
+### Actual results
+
+- `pytest`: **225 passed**.
+- `ruff check .`: **All checks passed!**
+- `mypy` (strict): **Success: no issues found in 43 source files**.
+- Before/after rule outcome:
+
+  | Rule | Vulnerable | Fixed |
+  | --- | --- | --- |
+  | PW-001 | high / reachable | medium / reachable (declared approval lowers severity) |
+  | PW-002 | medium / indeterminate | removed (requester-scoped + explicit acts_as_requester) |
+  | PW-003 | high + low / reachable | removed (per-tool scoped identities) |
+  | PW-004 | medium / indeterminate + reachable | low / informational (declared) |
+  | PW-005 | medium / indeterminate | removed (allowlist + boundary) |
+  | PW-006 | medium / reachable | removed (tenant isolation; no EU edge) |
+  | PW-007 | medium / indeterminate | removed (no `flows_to` chain) |
+
+### Decisions
+
+1. PW-001 now applies the documented "declared control" severity modifier when
+   approval is declared, so the fixed example drops from high to medium rather
+   than disappearing (the untrusted-to-confidential read remains).
+2. The fixed example keeps the cross-tenant resource in the document but makes it
+   unreachable, so the regression test proves tenant isolation through the graph
+   and permission engine, not by deleting the resource.
+
+### Known limitations
+
+- PW-001 legitimately remains on the fixed example; the untrusted CV can still
+  reach a confidential read. Report language flags this as a potential path with
+  a declared (unverified) control.
+
+### Next step
+
+Stage 8 — quality, security, and documentation: full suite, Ruff, type check,
+security review, documentation accuracy, CI workflow, and installation
+instructions.

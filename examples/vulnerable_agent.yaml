@@ -1,0 +1,79 @@
+schema_version: "1.0"
+
+agent:
+  id: hr-assistant
+  name: HR Assistant
+  execution_identity: hr-agent-identity
+  description: Screens candidate CVs and answers HR questions.
+
+identities:
+  - id: hr-agent-identity
+    type: service_account
+    name: HR agent execution identity
+    granted_scopes: ["db:read", "mail:send"]
+    resource_restrictions: ["*"]
+    tenants: ["acme", "globex"]
+    credential_ref: "vault://kv/hr/agent-token"
+
+input_sources:
+  - id: cv-upload
+    name: Candidate CV upload
+    type: uploaded_file
+    trust: untrusted
+    may_contain_attacker_content: true
+    requesting_principal: candidate
+
+tools:
+  - id: hr-database
+    name: Employee database reader
+    description: Reads employee records from the HR database.
+    declared_purpose: Read employee records for HR requests.
+    operations: [read]
+    identity: hr-agent-identity
+    required_scopes: ["db:read"]
+    resource_restrictions: ["*"]
+    approval:
+      read: none
+    output_flows_to: [summarizer]
+
+  - id: summarizer
+    name: Record summarizer
+    description: Summarizes employee records for the agent.
+    operations: [read]
+    identity: hr-agent-identity
+    required_scopes: ["db:read"]
+    resource_restrictions: ["*"]
+    output_flows_to: [email-sender]
+
+  - id: email-sender
+    name: Email sender
+    description: Sends email messages to recipients.
+    declared_purpose: Send HR notifications and candidate replies.
+    operations: [send]
+    identity: hr-agent-identity
+    required_scopes: ["mail:send"]
+    outbound: true
+    approval:
+      send: none
+
+resources:
+  - id: employee-db
+    type: database
+    name: Employee database (acme)
+    sensitivity: confidential
+    owner: hr-team
+    tenant: acme
+    permitted_operations: [read]
+
+  - id: employee-db-eu
+    type: database
+    name: Employee database (globex)
+    sensitivity: confidential
+    owner: hr-team
+    tenant: globex
+    permitted_operations: [read]
+
+policy:
+  approval_operations: [send]
+  approval_sensitivity: [confidential, restricted]
+  boundary_sensitivity: [restricted]

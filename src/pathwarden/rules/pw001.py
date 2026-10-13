@@ -16,6 +16,7 @@ from pathwarden.rules.common import (
     MUTATING_OPERATIONS,
     SENSITIVE_LEVELS,
     ToolResourceAccess,
+    approval_is_declared,
     path_edge,
     resource_operations,
     status_label,
@@ -81,7 +82,9 @@ class PW001(Rule):
             resource.sensitivity,
             operation_class(operation),
             untrusted=True,
-            control_applies=False,
+            control_applies=approval_is_declared(
+                config, tool=tool, operation=operation, resource=resource
+            ),
             status_unknown=status_unknown,
         )
         edge_type = "reads" if operation.value == "read" else "writes"

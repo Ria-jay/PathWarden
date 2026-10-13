@@ -32,15 +32,16 @@ Early development. This repository is being built in documented stages
 | 4 | Trace / provenance analysis | complete |
 | 5 | MCP-style importer | complete |
 | 6 | CLI and reporting | complete |
-| 7 | HR example and regression tests | not started |
+| 7 | HR example and regression tests | complete |
 | 8 | Quality, security, and documentation | not started |
 
 Only features that are actually implemented and tested are documented here.
-Through Stage 6, Pathwarden provides configuration loading/validation, the typed
+Through Stage 7, Pathwarden provides configuration loading/validation, the typed
 permission-aware graph with JSON/Mermaid/DOT export, the seven static rules
-(PW-001…PW-007), execution-log provenance analysis, the MCP-tools importer, and
-the CLI commands `analyze`, `trace`, `graph`, `report`, and `import-mcp` with
-Markdown and JSON reports. See `docs/`.
+(PW-001…PW-007), execution-log provenance analysis, the MCP-tools importer, the
+CLI commands `analyze`, `trace`, `graph`, `report`, and `import-mcp` with
+Markdown and JSON reports, and a reproducible HR before/after example. See
+`docs/`.
 
 ## Requirements
 
@@ -142,6 +143,33 @@ policy:
 Unknown values are preserved, never defaulted to something permissive. When a
 security-relevant field is omitted, it stays *undeclared* and downstream
 analysis treats it as `unknown`.
+
+## Example: HR assistant
+
+`examples/` contains a reproducible before/after scenario:
+
+* `examples/vulnerable_agent.yaml` — CV uploads (untrusted), a confidential
+  employee database spanning two tenants, an email tool with no destination
+  restriction, a `flows_to` chain, and no declared approval.
+* `examples/trace.jsonl` — a matching execution trace with a direct link, a
+  contextual link, and a deliberately link-less call.
+* `examples/fixed_agent.yaml` — the same agent with per-tool scoped identities,
+  tenant isolation, declared approval, a destination allowlist, and
+  requester-scoped authorization checks.
+
+```bash
+./.venv/bin/pathwarden analyze examples/vulnerable_agent.yaml
+./.venv/bin/pathwarden analyze examples/fixed_agent.yaml
+./.venv/bin/pathwarden trace examples/vulnerable_agent.yaml examples/trace.jsonl
+```
+
+Running the same rule set against both, the remediated configuration removes
+PW-002, PW-003, PW-005, PW-006, and PW-007, turns PW-004 into a declared
+(informational) control, and lowers PW-001 from high to medium. PW-001 remains
+because untrusted input can still reach a confidential read — the fixed example
+adds a declared (not verified) control rather than pretending the risk is gone.
+`tests/test_hr_regression.py` verifies these differences are caused by real
+permission and graph changes.
 
 ## Documentation
 

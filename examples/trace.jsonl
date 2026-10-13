@@ -1,0 +1,6 @@
+{"event_id": "e1", "timestamp": "2026-01-01T10:00:00Z", "type": "input", "source": "cv-upload", "trust_level": "untrusted", "content_ref": "cv.pdf", "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "requesting_principal": "candidate"}
+{"event_id": "e2", "timestamp": "2026-01-01T10:00:05Z", "type": "model_output", "source": "llm", "trust_level": "trusted", "parent_event_ids": ["e1"], "content_ref": "out-1"}
+{"event_id": "e3", "timestamp": "2026-01-01T10:00:06Z", "type": "tool_call", "source": "agent", "tool_id": "hr-database", "operation": "read", "resource_id": "employee-db", "parent_event_ids": ["e2"]}
+{"event_id": "e4", "timestamp": "2026-01-01T10:00:07Z", "type": "tool_result", "source": "hr-database", "parent_event_ids": ["e3"], "content_ref": "employee-rows"}
+{"event_id": "e5", "timestamp": "2026-01-01T10:00:08Z", "type": "tool_call", "source": "agent", "tool_id": "email-sender", "operation": "send", "resource_id": "employee-db", "context_event_ids": ["e1"]}
+{"event_id": "e6", "timestamp": "2026-01-01T10:00:09Z", "type": "tool_call", "source": "agent", "tool_id": "summarizer", "operation": "read", "resource_id": "employee-db"}

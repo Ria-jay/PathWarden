@@ -1,0 +1,90 @@
+schema_version: "1.0"
+
+agent:
+  id: hr-assistant
+  name: HR Assistant (remediated)
+  execution_identity: hr-orchestrator-identity
+  description: Screens candidate CVs with scoped credentials and explicit controls.
+
+identities:
+  - id: hr-orchestrator-identity
+    type: agent
+    name: HR orchestrator
+    acts_as_requester: false
+
+  - id: hr-db-identity
+    type: service_account
+    name: HR database read-only identity
+    granted_scopes: ["db:read"]
+    resource_restrictions: ["employee-db"]
+    tenants: ["acme"]
+    acts_as_requester: false
+    credential_ref: "vault://kv/hr/db-readonly"
+
+  - id: hr-mail-identity
+    type: service_account
+    name: HR mail identity
+    granted_scopes: ["mail:send"]
+    tenants: ["acme"]
+    acts_as_requester: false
+    credential_ref: "vault://kv/hr/mail-send"
+
+input_sources:
+  - id: cv-upload
+    name: Candidate CV upload
+    type: uploaded_file
+    trust: untrusted
+    may_contain_attacker_content: true
+    requesting_principal: candidate
+
+tools:
+  - id: hr-database
+    name: Employee database reader
+    description: Reads employee records for the requesting tenant only.
+    declared_purpose: Read employee records for the acme tenant.
+    operations: [read]
+    identity: hr-db-identity
+    required_scopes: ["db:read"]
+    resource_restrictions: ["employee-db"]
+    approval:
+      read: required
+    authorization_check:
+      type: requester_scoped
+      description: Checks the requester may view the employee record.
+
+  - id: email-sender
+    name: Email sender
+    description: Sends email to allowlisted internal recipients.
+    declared_purpose: Notify HR staff.
+    operations: [send]
+    identity: hr-mail-identity
+    required_scopes: ["mail:send"]
+    outbound: true
+    allowed_destinations: ["*.acme.com"]
+    approval:
+      send: required
+    authorization_check:
+      type: requester_scoped
+
+resources:
+  - id: employee-db
+    type: database
+    name: Employee database (acme)
+    sensitivity: confidential
+    owner: hr-team
+    tenant: acme
+    permitted_operations: [read]
+
+  - id: employee-db-eu
+    type: database
+    name: Employee database (globex)
+    sensitivity: confidential
+    owner: hr-team
+    tenant: globex
+    permitted_operations: [read]
+
+policy:
+  approval_operations: [send, read]
+  approval_sensitivity: [confidential, restricted]
+  allowed_outbound_destinations: ["*.acme.com"]
+  boundary_sensitivity: [restricted]
