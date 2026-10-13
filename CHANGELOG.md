@@ -19,3 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     invalid operations, unsupported schema versions, tenant inconsistencies.
   - Secret redaction utilities for errors and reports.
   - Schema, loader, and redaction tests.
+
+- Stage 2 — graph and permission-aware reachability:
+  - Tri-state permission engine (`allowed` / `denied` / `unknown`) with explicit
+    deny, glob matching, and recorded deciding steps.
+  - Tenant, scope, resource-restriction, resource-operation, and destination
+    checks; approval assessed separately as a declared control.
+  - Typed `networkx` graph with the documented node and edge types, built from
+    declared capabilities.
+  - Deterministic JSON, Mermaid, and Graphviz DOT exports.
+  - `docs/permission-model.md` and permission/graph tests.

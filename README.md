@@ -27,7 +27,7 @@ Early development. This repository is being built in documented stages
 | --- | --- | --- |
 | 0 | Repository inspection and plan | complete |
 | 1 | Foundation and configuration schema | complete |
-| 2 | Graph and permission-aware reachability | not started |
+| 2 | Graph and permission-aware reachability | complete |
 | 3 | Static rules PW-001…PW-007 | not started |
 | 4 | Trace / provenance analysis | not started |
 | 5 | MCP-style importer | not started |
@@ -35,10 +35,11 @@ Early development. This repository is being built in documented stages
 | 7 | HR example and regression tests | not started |
 | 8 | Quality, security, and documentation | not started |
 
-Only implement features that are actually implemented and tested are documented
-here. During Stage 1, only configuration loading and validation are available;
-the CLI currently exposes `--version`/`--help` only. The analysis commands are
-added in later stages.
+Only features that are actually implemented and tested are documented here.
+Through Stage 2, configuration loading/validation and the typed, permission-aware
+graph with JSON/Mermaid/DOT export are available. The CLI currently exposes
+`--version`/`--help` only; the analysis commands are added in later stages.
+See `docs/permission-model.md` for the permission semantics.
 
 ## Requirements
 

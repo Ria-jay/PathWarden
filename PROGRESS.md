@@ -18,7 +18,7 @@ decisions, and limitations. Updated at the end of every stage.
 | --- | --- | --- |
 | 0 | Repository inspection and plan | complete (approved) |
 | 1 | Foundation and configuration schema | complete |
-| 2 | Graph and permission-aware reachability | not started |
+| 2 | Graph and permission-aware reachability | complete |
 | 3 | Static rules PW-001…PW-007 | not started |
 | 4 | Trace / provenance analysis | not started |
 | 5 | MCP-style importer | not started |
@@ -108,8 +108,78 @@ python3 -m venv .venv
 - The `>=3.11` claim is exercised on Python 3.14 only; 3.11–3.13 are not yet
   verified (nothing version-specific is used, but this is unproven).
 
+### Next step (superseded)
+
+## Stage 2 — Graph and permission-aware reachability
+
+### Implemented
+
+- Tri-state permission model (`graph/permissions.py`): `allowed` / `denied` /
+  `unknown`; explicit deny (`!` prefix) beats allow; `None` = undeclared =
+  unknown; empty allow list = deny; empty requirement list = satisfied; glob
+  matching via `fnmatch`; fold rule deny > unknown > allowed; recorded steps and
+  a deciding step.
+- Tenant, scope, resource-restriction, resource-operation, tool-operation, and
+  destination checks, each fully branched and tested.
+- Approval assessed as a *control* (`not_required` / `declared` / `partial` /
+  `missing` / `indeterminate`), never as allow/deny; declared is *not* effective.
+- Typed graph (`graph/model.py`, `graph/build.py`) over a `networkx.MultiDiGraph`
+  with node types (`input_source`, `agent`, `tool`, `resource`, `identity`,
+  `external_destination`) and edge types (`feeds_context`, `can_invoke`,
+  `reads`, `writes`, `uses_identity`, `outbound_to`, `flows_to`). Edges carry
+  operations, restriction basis, tenant, trust, and destination attributes.
+- Deterministic exports (`graph/export.py`): JSON, Mermaid, Graphviz DOT, all
+  sorted so identical input yields identical output.
+- `docs/permission-model.md` documenting every semantic and both branches of
+  the unknown cases.
+
+### Files created
+
+- `src/pathwarden/graph/__init__.py`, `model.py`, `permissions.py`, `build.py`,
+  `export.py`
+- `tests/test_permissions.py`, `tests/test_graph.py`
+- `docs/permission-model.md`
+
+### Commands run (working directory `/home/kali/pathwarden`)
+
+```bash
+./.venv/bin/python -m pytest
+./.venv/bin/ruff check .
+./.venv/bin/mypy
+```
+
+### Actual results
+
+- `pytest`: **109 passed**.
+- `ruff check .`: **All checks passed!**
+- `mypy` (strict): **Success: no issues found in 18 source files**.
+- Demonstration of the three reachability states (same `reads` edge present in
+  all three): `allowed` (deciding step none), `denied` (deciding step `tenant`),
+  `unknown` (deciding step `resource_restriction`). This confirms that graph
+  connectivity does not imply permission.
+
+### Decisions
+
+1. `None` (undeclared) yields `unknown`; an explicitly empty *allow* list
+   (`[]`) yields `denied`; an empty *requirement* list is satisfied. See
+   `docs/permission-model.md`.
+2. `!`-prefixed patterns are explicit denies (a Pathwarden convention).
+3. Resource restrictions are the intersection of the identity's and the tool's
+   declared restrictions. `allowed` therefore requires both sides declared.
+4. Approval is modelled separately from permissions.
+5. Undeclared tool resource restrictions connect the tool to all resources in
+   the graph, with `restriction_basis: undeclared`; permission status stays
+   `unknown` at query time.
+
+### Known limitations
+
+- No path enumeration for rules yet; Stage 2 provides the permission primitive
+  and graph that Stage 3 rules consume.
+- `allowed` is intentionally hard to reach; most partial configs yield
+  `unknown`.
+
 ### Next step
 
-Stage 2 — typed graph construction and permission-aware reachability
-(tri-state `allowed`/`denied`/`unknown`), tenant and approval constraints, and
-graph export (JSON/Mermaid/DOT).
+Stage 3 — static rules PW-001…PW-007, one at a time, each with documented
+limitations and positive, negative, boundary, insufficient-information, and
+structurally-connected-but-not-permission-reachable tests.
