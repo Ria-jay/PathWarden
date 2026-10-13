@@ -60,9 +60,7 @@ def resource_operations(config: AgentConfig, graph: SecurityGraph) -> list[ToolR
             continue
         for value in attrs.get("operations", []):
             operation = Operation(value)
-            result = evaluate_access(
-                config, tool=tool, operation=operation, resource=resource
-            )
+            result = evaluate_access(config, tool=tool, operation=operation, resource=resource)
             accesses.append(ToolResourceAccess(tool, operation, resource, result))
     return accesses
 
@@ -83,9 +81,7 @@ def approval_is_declared(
     """Whether policy requires approval and the tool declares it required."""
 
     sensitive = resource is not None and resource.sensitivity in config.policy.approval_sensitivity
-    assessment = assess_approval(
-        config.policy, tool=tool, operation=operation, sensitive=sensitive
-    )
+    assessment = assess_approval(config.policy, tool=tool, operation=operation, sensitive=sensitive)
     return assessment.status is ApprovalAssessmentStatus.DECLARED
 
 
@@ -119,9 +115,7 @@ def most_sensitive(resources: list[Resource]) -> Sensitivity:
     return max(resources, key=lambda resource: order[resource.sensitivity]).sensitivity
 
 
-def path_edge(
-    graph: SecurityGraph, source: str, target: str, edge_type: str
-) -> PathEdge:
+def path_edge(graph: SecurityGraph, source: str, target: str, edge_type: str) -> PathEdge:
     """Return a :class:`PathEdge` carrying the real graph attributes, if any."""
 
     attributes: dict[str, object] = {}

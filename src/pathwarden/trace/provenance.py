@@ -10,6 +10,10 @@ For each sensitive tool call, each untrusted input event is classified:
 
 All candidates are listed; Pathwarden does not choose one. A missing parent or
 context link is never treated as evidence that no influence existed.
+
+Classification is computed with a forward-reachability index (descendants along
+parent→child edges, built once per untrusted input) so that large or deeply
+chained logs are processed in linear time rather than quadratic.
 """
 
 from __future__ import annotations
@@ -132,41 +136,73 @@ def untrusted_inputs(trace: TraceData) -> list[TraceEvent]:
     ]
 
 
-def _ancestors(trace: TraceData, event_id: str) -> list[str]:
-    """Return ancestor event ids (via ``parent_event_ids``), cycle-safe."""
+class ProvenanceIndex:
+    """Forward-reachability index used for linear-time classification."""
 
-    seen: set[str] = set()
-    ordered: list[str] = []
-    start = trace.get(event_id)
-    stack = list(start.parent_event_ids) if start is not None else []
-    while stack:
-        current = stack.pop()
-        if current in seen:
-            continue
-        seen.add(current)
-        ordered.append(current)
-        parent = trace.get(current)
-        if parent is not None:
-            stack.extend(parent.parent_event_ids)
-    return ordered
+    def __init__(self, trace: TraceData, inputs: list[TraceEvent]) -> None:
+        self.trace = trace
+        self.inputs = inputs
+        self._children: dict[str, list[str]] = {}
+        for event in trace.events:
+            for parent_id in event.parent_event_ids:
+                if trace.get(parent_id) is not None:
+                    self._children.setdefault(parent_id, []).append(event.event_id)
 
+        self._direct: dict[str, frozenset[str]] = {}
+        self._contextual: dict[str, frozenset[str]] = {}
+        for source in inputs:
+            self._direct[source.event_id] = self._descendants(source.event_id)
+            seeds = [
+                event.event_id
+                for event in trace.events
+                if source.event_id in event.context_event_ids
+            ]
+            contextual: set[str] = set()
+            for seed in seeds:
+                contextual |= self._descendants(seed)
+            self._contextual[source.event_id] = frozenset(contextual)
 
-def _context_ids(trace: TraceData, event: TraceEvent, ancestors: list[str]) -> list[str]:
-    """Context event ids of ``event`` and all of its ancestors."""
+    def _descendants(self, start: str) -> frozenset[str]:
+        seen: set[str] = set()
+        stack = [start]
+        while stack:
+            node = stack.pop()
+            if node in seen:
+                continue
+            seen.add(node)
+            stack.extend(self._children.get(node, ()))
+        return frozenset(seen)
 
-    collected: list[str] = list(event.context_event_ids)
-    for ancestor_id in ancestors:
-        ancestor = trace.get(ancestor_id)
-        if ancestor is not None:
-            collected.extend(ancestor.context_event_ids)
-    # Deduplicate, preserve order.
-    seen: set[str] = set()
-    result: list[str] = []
-    for item in collected:
-        if item not in seen:
-            seen.add(item)
-            result.append(item)
-    return result
+    def classify(self, event: TraceEvent) -> list[ProvenanceCandidate]:
+        candidates: list[ProvenanceCandidate] = []
+        for source in self.inputs:
+            if event.event_id in self._direct[source.event_id]:
+                candidates.append(
+                    ProvenanceCandidate(
+                        input_event_id=source.event_id,
+                        classification=ProvenanceClass.DIRECT,
+                        detail="input is reachable through parent_event_ids",
+                        via_event_ids=(source.event_id,),
+                    )
+                )
+            elif event.event_id in self._contextual[source.event_id]:
+                candidates.append(
+                    ProvenanceCandidate(
+                        input_event_id=source.event_id,
+                        classification=ProvenanceClass.CONTEXTUAL,
+                        detail="input appears in context_event_ids but has no parent link",
+                        via_event_ids=(source.event_id,),
+                    )
+                )
+            elif source.timestamp <= event.timestamp:
+                candidates.append(
+                    ProvenanceCandidate(
+                        input_event_id=source.event_id,
+                        classification=ProvenanceClass.UNKNOWN,
+                        detail="temporal association only; no parent or context link",
+                    )
+                )
+        return candidates
 
 
 def classify_event(
@@ -174,56 +210,22 @@ def classify_event(
 ) -> list[ProvenanceCandidate]:
     """Classify every untrusted input candidate for ``event``."""
 
-    ancestors = _ancestors(trace, event.event_id)
-    ancestor_set = set(ancestors)
-    context = _context_ids(trace, event, ancestors)
-    context_set = set(context)
-    candidates: list[ProvenanceCandidate] = []
-
-    for source in inputs:
-        if source.event_id in ancestor_set:
-            candidates.append(
-                ProvenanceCandidate(
-                    input_event_id=source.event_id,
-                    classification=ProvenanceClass.DIRECT,
-                    detail="input is reachable through parent_event_ids",
-                    via_event_ids=tuple(ancestors),
-                )
-            )
-        elif source.event_id in context_set:
-            candidates.append(
-                ProvenanceCandidate(
-                    input_event_id=source.event_id,
-                    classification=ProvenanceClass.CONTEXTUAL,
-                    detail="input appears in context_event_ids but has no parent link",
-                    via_event_ids=tuple(context),
-                )
-            )
-        elif source.timestamp <= event.timestamp:
-            candidates.append(
-                ProvenanceCandidate(
-                    input_event_id=source.event_id,
-                    classification=ProvenanceClass.UNKNOWN,
-                    detail="temporal association only; no parent or context link",
-                )
-            )
-    return candidates
+    return ProvenanceIndex(trace, inputs).classify(event)
 
 
 def analyze_provenance(trace: TraceData) -> list[ToolCallProvenance]:
     """Return provenance candidates for every tool-call event."""
 
     inputs = untrusted_inputs(trace)
+    index = ProvenanceIndex(trace, inputs)
     results: list[ToolCallProvenance] = []
     for event in trace.events:
         if event.type is not EventType.TOOL_CALL:
             continue
-        candidates = classify_event(trace, event, inputs)
+        candidates = index.classify(event)
         if candidates:
             results.append(
-                ToolCallProvenance(
-                    tool_call_event_id=event.event_id, candidates=tuple(candidates)
-                )
+                ToolCallProvenance(tool_call_event_id=event.event_id, candidates=tuple(candidates))
             )
     return results
 
@@ -238,7 +240,6 @@ def is_sensitive_tool_call(config: AgentConfig, event: TraceEvent) -> bool:
         if resource is not None and resource.sensitivity in SENSITIVE_LEVELS:
             return True
         if resource is None:
-            # Unknown resource: potential, but the operation still matters.
             return event.operation is None or event.operation is not Operation.READ
     return False
 
@@ -250,21 +251,21 @@ def build_trace_findings(config: AgentConfig, trace: TraceData) -> list[TraceFin
     if not inputs:
         return []
 
+    index = ProvenanceIndex(trace, inputs)
     findings: list[TraceFinding] = []
     for event in trace.events:
         if event.type is not EventType.TOOL_CALL or not is_sensitive_tool_call(config, event):
             continue
-        candidates = classify_event(trace, event, inputs)
+        candidates = index.classify(event)
         if not candidates:
             continue
-        findings.append(_build_finding(config, trace, event, candidates))
+        findings.append(_build_finding(config, event, candidates))
     findings.sort(key=lambda finding: (-SEVERITY_ORDER[finding.severity], finding.finding_id))
     return findings
 
 
 def _build_finding(
     config: AgentConfig,
-    trace: TraceData,
     event: TraceEvent,
     candidates: list[ProvenanceCandidate],
 ) -> TraceFinding:

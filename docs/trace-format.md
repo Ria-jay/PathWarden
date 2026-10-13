@@ -46,11 +46,12 @@ and `content_hash` to reference content out of band.
 
 | Limit | Value |
 | --- | --- |
-| Trace file size | 50 MiB |
-| Events per trace | 500,000 |
+| Trace file size | 32 MiB |
+| Events per trace | 100,000 |
 | Line length | 1 MiB |
 
-Exceeding a limit is an input error (exit code 2).
+Exceeding a limit is an input error (exit code 2). Event validation (Pydantic)
+costs roughly 10 KB of memory per event; the event limit bounds peak memory.
 
 ## Example
 

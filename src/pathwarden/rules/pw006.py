@@ -29,7 +29,7 @@ class PW006(Rule):
     )
     prerequisites = (
         "Resources with tenant declarations reachable through a tool.",
-        "An identity with a tenant declaration (list or \"*\").",
+        'An identity with a tenant declaration (list or "*").',
     )
     limitations = (
         "Tenant semantics are taken from the configuration. When a resource tenant or an "
@@ -94,7 +94,7 @@ class PW006(Rule):
                         resources,
                         op_class,
                         "wildcard_tenants",
-                        f"identity {identity.id!r} declares all tenants (\"*\") and can reach "
+                        f'identity {identity.id!r} declares all tenants ("*") and can reach '
                         f"resources in {len(known)} tenants: {known}.",
                     )
                 )

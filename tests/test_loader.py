@@ -169,7 +169,7 @@ def test_directory_is_config_error(tmp_path: Path) -> None:
 
 def test_invalid_utf8_rejected(tmp_path: Path) -> None:
     path = tmp_path / "bad.yaml"
-    path.write_bytes(b"schema_version: \"1.0\"\xff\xfe")
+    path.write_bytes(b'schema_version: "1.0"\xff\xfe')
     with pytest.raises(ConfigError) as excinfo:
         load_config(path)
     assert "UTF-8" in str(excinfo.value)
@@ -178,7 +178,7 @@ def test_invalid_utf8_rejected(tmp_path: Path) -> None:
 def test_oversized_file_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(loader, "MAX_CONFIG_BYTES", 16)
     path = tmp_path / "big.yaml"
-    path.write_text("schema_version: \"1.0\"\n" * 10, encoding="utf-8")
+    path.write_text('schema_version: "1.0"\n' * 10, encoding="utf-8")
     with pytest.raises(ConfigError) as excinfo:
         load_config(path)
     assert "exceeds" in str(excinfo.value)

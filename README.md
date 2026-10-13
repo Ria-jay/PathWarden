@@ -33,7 +33,7 @@ Early development. This repository is being built in documented stages
 | 5 | MCP-style importer | complete |
 | 6 | CLI and reporting | complete |
 | 7 | HR example and regression tests | complete |
-| 8 | Quality, security, and documentation | not started |
+| 8 | Quality, security, and documentation | complete |
 
 Only features that are actually implemented and tested are documented here.
 Through Stage 7, Pathwarden provides configuration loading/validation, the typed
@@ -173,11 +173,20 @@ permission and graph changes.
 
 ## Documentation
 
-Detailed documentation (architecture, schema reference, permission model,
-severity matrix, graph semantics, trace format, provenance semantics, importer
-compatibility, report format, exit codes, and threat model) is added in Stage 8
-as the corresponding features are implemented. This README describes only
-behavior that exists today.
+Detailed documentation lives in `docs/`:
+
+* `architecture.md` — package layout, data flow, design principles.
+* `schema.md` — the versioned configuration schema reference.
+* `permission-model.md` — the tri-state permission model and unknowns.
+* `graph-semantics.md` — node/edge types, reachability, exports.
+* `severity.md` — the severity matrix, modifiers, and confidence.
+* `rules.md` — the rule catalog and per-rule limitations.
+* `trace-format.md` — the JSONL event format and limits.
+* `provenance.md` — `direct`/`contextual`/`unknown` semantics and correlation.
+* `importer.md` — MCP import compatibility and review indicators.
+* `report-format.md` — the Markdown/JSON report schema.
+* `exit-codes.md` — exit codes and CI usage.
+* `threat-model.md` — assumptions, boundaries, and residual risks.
 
 ## Development
 

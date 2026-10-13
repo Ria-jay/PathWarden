@@ -51,15 +51,11 @@ __all__ = [
     "Tool",
 ]
 
-Identifier = Annotated[
-    str, StringConstraints(min_length=1, max_length=256, strip_whitespace=True)
-]
+Identifier = Annotated[str, StringConstraints(min_length=1, max_length=256, strip_whitespace=True)]
 ScopePattern = Annotated[
     str, StringConstraints(min_length=1, max_length=512, strip_whitespace=True)
 ]
-TenantName = Annotated[
-    str, StringConstraints(min_length=1, max_length=128, strip_whitespace=True)
-]
+TenantName = Annotated[str, StringConstraints(min_length=1, max_length=128, strip_whitespace=True)]
 
 #: A tenant declaration is either a non-empty list of tenant names or the
 #: single string ``"*"`` (all tenants). Mixing ``"*"`` into a list is rejected.
@@ -210,8 +206,7 @@ class Tool(_Base):
         undeclared = sorted(op.value for op in self.approval if op not in self.operations)
         if undeclared:
             raise ValueError(
-                "approval declares operations the tool does not perform: "
-                + ", ".join(undeclared)
+                "approval declares operations the tool does not perform: " + ", ".join(undeclared)
             )
         return self
 

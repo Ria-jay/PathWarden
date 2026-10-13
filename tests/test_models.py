@@ -67,9 +67,7 @@ def test_input_source_trust_and_attacker_flag() -> None:
 
 
 def test_tenants_wildcard_alone_is_allowed() -> None:
-    identity = Identity.model_validate(
-        {"id": "idn", "type": "service_account", "tenants": "*"}
-    )
+    identity = Identity.model_validate({"id": "idn", "type": "service_account", "tenants": "*"})
     assert identity.tenants == "*"
 
 

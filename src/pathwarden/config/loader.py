@@ -292,14 +292,10 @@ def _check_semantics(config: AgentConfig, *, source: str) -> None:
 
     for tool in config.tools:
         if tool.identity not in identity_ids:
-            problems.append(
-                f"tool {tool.id!r} references unknown identity {tool.identity!r}"
-            )
+            problems.append(f"tool {tool.id!r} references unknown identity {tool.identity!r}")
         for target in tool.output_flows_to:
             if target not in tool_ids:
-                problems.append(
-                    f"tool {tool.id!r} output_flows_to unknown tool {target!r}"
-                )
+                problems.append(f"tool {tool.id!r} output_flows_to unknown tool {target!r}")
 
     if problems:
         raise ConfigValidationError(_format_problems(problems, source=source))

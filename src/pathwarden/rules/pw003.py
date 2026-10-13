@@ -102,9 +102,7 @@ class PW003(Rule):
                     )
         return findings
 
-    def _excess_operations(
-        self, identity: Identity, declared: set[Operation]
-    ) -> list[Operation]:
+    def _excess_operations(self, identity: Identity, declared: set[Operation]) -> list[Operation]:
         excess: set[Operation] = set()
         if identity.granted_scopes is None:
             return []

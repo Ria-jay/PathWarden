@@ -32,9 +32,9 @@ __all__ = [
 ]
 
 #: Maximum accepted trace file size in bytes.
-MAX_TRACE_BYTES = 50 * 1024 * 1024
-#: Maximum accepted number of events.
-MAX_EVENTS = 500_000
+MAX_TRACE_BYTES = 32 * 1024 * 1024
+#: Maximum accepted number of events (bounds peak memory: ~10 KB/event).
+MAX_EVENTS = 100_000
 #: Maximum accepted bytes per line.
 MAX_LINE_BYTES = 1024 * 1024
 

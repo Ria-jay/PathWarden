@@ -82,9 +82,7 @@ class PW007(Rule):
                 for path in nx.all_simple_paths(flow_graph, start_id, end_id):
                     if len(path) < 3:
                         continue
-                    findings.append(
-                        self._finding(context, starts[start_id], path, accesses)
-                    )
+                    findings.append(self._finding(context, starts[start_id], path, accesses))
         return findings
 
     def _flow_graph(self, graph: SecurityGraph) -> nx.DiGraph[str]:
@@ -146,8 +144,7 @@ class PW007(Rule):
             confidence = Confidence.LOW
         else:
             unresolved = (
-                start_status is PermissionStatus.UNKNOWN
-                or end_status is PermissionStatus.UNKNOWN
+                start_status is PermissionStatus.UNKNOWN or end_status is PermissionStatus.UNKNOWN
             )
             status = FindingStatus.INDETERMINATE if unresolved else FindingStatus.REACHABLE
             status_unknown = unresolved
@@ -173,9 +170,7 @@ class PW007(Rule):
             missing.append("starting read is denied; chain is structurally connected only")
 
         return Finding(
-            finding_id=make_finding_id(
-                self.id, start.tool.id, start.resource.id, ">".join(path)
-            ),
+            finding_id=make_finding_id(self.id, start.tool.id, start.resource.id, ">".join(path)),
             rule_id=self.id,
             title=self.title,
             severity=severity,
@@ -187,8 +182,7 @@ class PW007(Rule):
                 f"{path[-1]!r}."
             ),
             evidence=(
-                f"starting read: {start.tool.id!r} -> {start.resource.id!r} "
-                f"({start_status.value})",
+                f"starting read: {start.tool.id!r} -> {start.resource.id!r} ({start_status.value})",
                 f"flows_to chain: {' -> '.join(path)}",
                 f"ending tool status: {end_status.value}",
             ),

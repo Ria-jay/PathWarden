@@ -62,9 +62,7 @@ class SecurityGraph:
 
         self.graph.add_node(node_id, node_type=node_type.value, **attributes)
 
-    def add_edge(
-        self, source: str, target: str, edge_type: EdgeType, **attributes: Any
-    ) -> None:
+    def add_edge(self, source: str, target: str, edge_type: EdgeType, **attributes: Any) -> None:
         """Add a typed edge keyed by its type."""
 
         self.graph.add_edge(

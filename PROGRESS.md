@@ -24,7 +24,7 @@ decisions, and limitations. Updated at the end of every stage.
 | 5 | MCP-style importer | complete |
 | 6 | CLI and reporting | complete |
 | 7 | HR example and regression tests | complete |
-| 8 | Quality, security, and documentation | not started |
+| 8 | Quality, security, and documentation | complete |
 
 ## Stage 1 — Foundation and configuration schema
 
@@ -488,6 +488,71 @@ permission and graph reasons.
 
 ### Next step
 
-Stage 8 — quality, security, and documentation: full suite, Ruff, type check,
-security review, documentation accuracy, CI workflow, and installation
-instructions.
+Stage 8 — quality, security, and documentation.
+
+## Stage 8 — Quality, security, and documentation
+
+### Implemented
+
+- GitHub Actions workflow (`.github/workflows/ci.yml`) installing the package and
+  running `ruff check`, `ruff format --check`, `mypy`, and `pytest` on Python
+  3.11–3.14, plus an example job asserting the vulnerable example fails the gate
+  and the fixed example passes it.
+- Documentation: `docs/architecture.md`, `docs/schema.md`,
+  `docs/graph-semantics.md`, `docs/threat-model.md` (joining the earlier
+  permission-model, severity, rules, trace-format, provenance, importer,
+  report-format, and exit-codes docs). README documentation index updated.
+- Performance/robustness fix: provenance classification now uses a
+  forward-reachability index (linear) instead of per-event ancestor walks
+  (quadratic). Trace limits tightened to 32 MiB / 100,000 events to bound peak
+  memory.
+- Security review of the source tree (see below).
+
+### Commands run (working directory `/home/kali/pathwarden`)
+
+```bash
+./.venv/bin/python -m pytest
+./.venv/bin/ruff check .
+./.venv/bin/ruff format --check .
+./.venv/bin/mypy
+grep -rnE "\beval\(|\bexec\(|subprocess|os\.system|requests|urllib|httpx|socket|http\.client" src/
+pure-Python benchmark: 50,000-event trace
+```
+
+### Actual results
+
+- `pytest`: **225 passed**.
+- `ruff check .`: **All checks passed!**
+- `ruff format --check .`: **72 files already formatted**.
+- `mypy` (strict): **Success: no issues found in 43 source files**.
+- Security grep: no `eval`/`exec`/`subprocess`/network usage in `src/`; only
+  comments matched. `yaml.safe_load`/`yaml.safe_dump` only; no `yaml.load`.
+- Benchmark (50,000-event trace): parse 6.5 s, provenance classification 0.75 s
+  (was effectively quadratic before the fix), peak RSS ~500 MB. Limits bound the
+  worst case.
+
+### Security review summary
+
+* No code execution, no network, no LLM in the core.
+* Input is parsed with `safe_load`/`json`; imported text is data, never
+  instructions.
+* Size, depth, value, line, and event limits bound resource use.
+* Secret-like content is redacted from errors, warnings, and reports; content
+  hashes are preserved.
+* Deterministic behaviour; the only variable report field is `generated_at`.
+
+### Known limitations
+
+- Only Python 3.14 has been executed locally; CI is configured to test 3.11–3.14
+  but has not been run in this environment.
+- Trace parsing costs ~10 KB/event and ~7 s per 50k events; the event limit is
+  the safety boundary.
+- Pathwarden detects only the implemented rules; it does not cover every agent
+  weakness and does not confirm exploitability.
+
+## Initial release — summary
+
+All eight stages are complete and committed. The test suite (225 tests) passes,
+Ruff and strict mypy are clean on Python 3.14, and the CLI, reports, examples,
+and documentation are implemented and exercised. Unknowns are represented
+honestly throughout; no feature is claimed that is not implemented and tested.

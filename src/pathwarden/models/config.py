@@ -45,6 +45,4 @@ class AgentConfig(_Base):
     def input_source_by_id(self, source_id: str) -> InputSource | None:
         """Return the input source with ``source_id``, or ``None``."""
 
-        return next(
-            (source for source in self.input_sources if source.id == source_id), None
-        )
+        return next((source for source in self.input_sources if source.id == source_id), None)

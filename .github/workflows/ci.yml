@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install
+        run: pip install -e ".[dev]"
+
+      - name: Lint (Ruff)
+        run: ruff check .
+
+      - name: Format check (Ruff)
+        run: ruff format --check .
+
+      - name: Type check (mypy)
+        run: mypy
+
+      - name: Tests (pytest)
+        run: pytest
+
+  example:
+    name: Example analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      # The vulnerable example is expected to fail the gate (exit code 1).
+      - name: Vulnerable example fails the gate
+        run: |
+          set +e
+          pathwarden analyze examples/vulnerable_agent.yaml --fail-on high
+          code=$?
+          set -e
+          test "$code" -eq 1
+      - name: Fixed example passes the gate
+        run: pathwarden analyze examples/fixed_agent.yaml --fail-on high

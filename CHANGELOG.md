@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Initial release: stages 1–8 (configuration schema, permission-aware graph,
+  static rules PW-001…PW-007, provenance analysis, MCP importer, CLI and
+  reporting, HR example, documentation, and CI).
+
+### Notes
+
+- Deterministic, offline, LLM-free core.
+- Verified on Python 3.14; CI configured for 3.11–3.14.
+
+### Stage detail
+
 - Stage 1 — foundation and configuration schema:
   - Project packaging (`pyproject.toml`), MIT license, and development tooling.
   - Pydantic domain models for agents, input sources, tools, resources,
@@ -71,3 +82,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Regression tests asserting that findings change for real permission and graph
     reasons (tenant isolation, edge absence, destination controls).
   - PW-001 applies the declared-control severity modifier.
+
+- Stage 8 — quality, security, and documentation:
+  - GitHub Actions CI (tests, Ruff, mypy, example gate) on Python 3.11–3.14.
+  - Architecture, schema, graph semantics, and threat-model documentation.
+  - Linear-time provenance classification; tightened trace limits.
+  - Source security review (no execution/network/LLM; safe parsing; redaction;
+    bounded inputs).

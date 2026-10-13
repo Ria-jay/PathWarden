@@ -139,9 +139,7 @@ def test_tenant_unknown_when_resource_undeclared() -> None:
 
 
 def test_resource_restriction_unknown_when_both_undeclared() -> None:
-    assert (
-        check_resource_restrictions(None, None, "r").status is PermissionStatus.UNKNOWN
-    )
+    assert check_resource_restrictions(None, None, "r").status is PermissionStatus.UNKNOWN
 
 
 def test_resource_restriction_allowed_by_glob() -> None:
@@ -190,15 +188,11 @@ def test_resource_operation_denied() -> None:
 
 
 def test_resource_operation_unknown_when_undeclared() -> None:
-    assert (
-        check_resource_operation(None, Operation.READ).status is PermissionStatus.UNKNOWN
-    )
+    assert check_resource_operation(None, Operation.READ).status is PermissionStatus.UNKNOWN
 
 
 def test_resource_operation_empty_denies() -> None:
-    assert (
-        check_resource_operation((), Operation.READ).status is PermissionStatus.DENIED
-    )
+    assert check_resource_operation((), Operation.READ).status is PermissionStatus.DENIED
 
 
 # -- tool operation --------------------------------------------------------- #
@@ -206,12 +200,10 @@ def test_resource_operation_empty_denies() -> None:
 
 def test_tool_operation_checks_declaration() -> None:
     assert (
-        check_tool_operation((Operation.READ,), Operation.READ).status
-        is PermissionStatus.ALLOWED
+        check_tool_operation((Operation.READ,), Operation.READ).status is PermissionStatus.ALLOWED
     )
     assert (
-        check_tool_operation((Operation.READ,), Operation.WRITE).status
-        is PermissionStatus.DENIED
+        check_tool_operation((Operation.READ,), Operation.WRITE).status is PermissionStatus.DENIED
     )
 
 
@@ -219,10 +211,7 @@ def test_tool_operation_checks_declaration() -> None:
 
 
 def test_destination_unknown_when_undeclared() -> None:
-    assert (
-        check_destinations(None, None, "mail.example.com").status
-        is PermissionStatus.UNKNOWN
-    )
+    assert check_destinations(None, None, "mail.example.com").status is PermissionStatus.UNKNOWN
 
 
 def test_destination_allowed_by_glob() -> None:
@@ -236,9 +225,7 @@ def test_destination_denied_outside_allowlist() -> None:
 
 
 def test_destination_empty_allowlist_denies() -> None:
-    assert (
-        check_destinations((), None, "any.example.com").status is PermissionStatus.DENIED
-    )
+    assert check_destinations((), None, "any.example.com").status is PermissionStatus.DENIED
 
 
 def test_destination_explicit_deny() -> None:
